@@ -1,0 +1,41 @@
+---
+# tasks file for pointer-app
+- name: instalando docker
+  apt:
+    name: docker.io
+    update_cache: yes
+    state: present
+
+- name: instalando docker compose
+  apt:
+    name: docker-compose
+    update_cache: yes
+    state: present
+
+- name: habilitar docker no host
+  service:
+    name: docker
+    enabled: yes
+    state: started
+
+- name: copiando arquivos para o host
+  copy:
+    src: "{{ item }}"
+    dest: "/home/admin/{{ item }}"
+  with_items:
+    - docker-compose.yml
+    - Dockerfile
+    - app.py
+    - requirements.txt
+
+- name: construindo a imagem Docker
+  command: docker build -t pythonapp:1.0 .
+  register: docker_build
+  args:
+    chdir: /home/admin
+
+- name: Subindo a aplicacao
+  command: docker-compose up -d
+  register: docker_compose_up
+  args:
+    chdir: /home/admin
